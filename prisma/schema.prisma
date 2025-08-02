@@ -70,8 +70,37 @@ model Book {
   metadata    String?    // JSON string for additional book metadata
   userId      String
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapters    Chapter[]  // For custom books
+  photos      Photo[]    // For photo books
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  title     String
+  prompt    String
+  content   String
+  order     Int
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([bookId, order])
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  filename  String
+  caption   String
+  order     Int
+  bookId    String
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([bookId, order])
 }
 
 enum BookCategory {
@@ -80,6 +109,8 @@ enum BookCategory {
   ADVENTURE
   FUNNY_QUOTES
   GENERAL_PROMPT
+  CUSTOM_BOOK
+  PHOTO_BOOK
 }
 
 enum BookStatus {

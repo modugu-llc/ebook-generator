@@ -20,9 +20,32 @@ export interface Book {
   updatedAt: Date
 }
 
+export interface Chapter {
+  id: string
+  title: string
+  prompt: string
+  content: string
+  order: number
+  bookId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Photo {
+  id: string
+  filename: string
+  caption: string
+  order: number
+  bookId: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 // In-memory storage for development
 const users: User[] = []
 const books: Book[] = []
+const chapters: Chapter[] = []
+const photos: Photo[] = []
 
 export const mockDb = {
   user: {
@@ -81,6 +104,44 @@ export const mockDb = {
         return books[index]
       }
       throw new Error('Book not found')
+    }
+  },
+  chapter: {
+    create: async ({ data }: { data: Omit<Chapter, 'id' | 'createdAt' | 'updatedAt'> }) => {
+      const chapter: Chapter = {
+        ...data,
+        id: Math.random().toString(36).substr(2, 9),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      chapters.push(chapter)
+      return chapter
+    },
+    findMany: async ({ where }: { where?: { bookId?: string } } = {}) => {
+      let filteredChapters = chapters
+      if (where?.bookId) {
+        filteredChapters = chapters.filter(c => c.bookId === where.bookId)
+      }
+      return filteredChapters.sort((a, b) => a.order - b.order)
+    }
+  },
+  photo: {
+    create: async ({ data }: { data: Omit<Photo, 'id' | 'createdAt' | 'updatedAt'> }) => {
+      const photo: Photo = {
+        ...data,
+        id: Math.random().toString(36).substr(2, 9),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      photos.push(photo)
+      return photo
+    },
+    findMany: async ({ where }: { where?: { bookId?: string } } = {}) => {
+      let filteredPhotos = photos
+      if (where?.bookId) {
+        filteredPhotos = photos.filter(p => p.bookId === where.bookId)
+      }
+      return filteredPhotos.sort((a, b) => a.order - b.order)
     }
   }
 }

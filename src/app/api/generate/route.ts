@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { mockDb } from '@/lib/mock-db'
 
 export async function POST(request: NextRequest) {
   try {
-    const { title, author, category, formData } = await request.json()
+    const { title, author, category, formData, chapters, photos } = await request.json()
 
-    // Simulate AI content generation
-    const generatedContent = generateBookContent(category, title, author, formData)
+    // Generate content based on category
+    const generatedContent = generateBookContent(category, title, author, formData, chapters, photos)
 
     // Create book in database
-    const book = await prisma.book.create({
+    const book = await mockDb.book.create({
       data: {
         title,
         author,
@@ -20,6 +20,35 @@ export async function POST(request: NextRequest) {
         metadata: JSON.stringify(formData),
       },
     })
+
+    // For custom books, create chapters
+    if (category === 'CUSTOM_BOOK' && chapters) {
+      for (const [index, chapter] of chapters.entries()) {
+        await mockDb.chapter.create({
+          data: {
+            title: chapter.title,
+            prompt: chapter.prompt,
+            content: generateChapterContent(chapter),
+            order: index,
+            bookId: book.id,
+          },
+        })
+      }
+    }
+
+    // For photo books, create photo records
+    if (category === 'PHOTO_BOOK' && photos) {
+      for (const photo of photos) {
+        await mockDb.photo.create({
+          data: {
+            filename: photo.filename,
+            caption: photo.caption,
+            order: photo.order,
+            bookId: book.id,
+          },
+        })
+      }
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -35,15 +64,44 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generateBookContent(category: string, title: string, author: string, formData: Record<string, string>) {
+function generateChapterContent(chapter: { title: string; prompt: string; specificInclusions: string }) {
+  // Mock AI content generation for individual chapters
+  const baseContent = `${chapter.prompt}\n\n`
+  const specificContent = chapter.specificInclusions ? `\nSpecific elements to include: ${chapter.specificInclusions}` : ''
+  
+  // In a real implementation, this would call an AI API
+  return `${baseContent}This chapter explores the themes and ideas outlined in the prompt. ${specificContent}\n\nGenerated content based on your specifications would appear here, incorporating the specific elements you requested.`
+}
+
+function generateBookContent(category: string, title: string, author: string, formData: Record<string, string>, chapters?: Array<{ title: string; prompt: string; specificInclusions: string }>, photos?: Array<{ id: string; caption: string; order: number; filename: string }>) {
   // Mock AI content generation based on category
   const content = {
     title,
     author,
     chapters: [] as { title: string; content: string }[],
+    photos: photos || [],
   }
 
   switch (category) {
+    case 'CUSTOM_BOOK':
+      if (chapters) {
+        content.chapters = chapters.map(chapter => ({
+          title: chapter.title,
+          content: generateChapterContent(chapter)
+        }))
+      }
+      break
+
+    case 'PHOTO_BOOK':
+      content.chapters = [
+        {
+          title: 'Introduction',
+          content: `Welcome to ${title}! ${formData['Book Description'] || 'This photo book captures beautiful memories and moments.'}`
+        }
+      ]
+      // Photos are handled separately in the photos array
+      break
+    
     case 'CHILDRENS_STORY':
       content.chapters = [
         {

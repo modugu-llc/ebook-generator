@@ -4,6 +4,23 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { bookCategories } from '@/lib/book-categories'
 import type { BookCategory, BookCategoryConfig } from '@/types'
+import CustomBookForm from './custom-book-form'
+import PhotoBookForm from './photo-book-form'
+
+interface Chapter {
+  id: string
+  title: string
+  prompt: string
+  specificInclusions: string
+}
+
+interface PhotoData {
+  id: string
+  file: File
+  caption: string
+  order: number
+  preview: string
+}
 
 export default function GenerateContent() {
   const searchParams = useSearchParams()
@@ -12,6 +29,13 @@ export default function GenerateContent() {
   const [categoryConfig, setCategoryConfig] = useState<BookCategoryConfig | null>(null)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [isGenerating, setIsGenerating] = useState(false)
+  
+  // Custom book specific state
+  const [chapters, setChapters] = useState<Chapter[]>([])
+  const [numChapters, setNumChapters] = useState<number>(1)
+  
+  // Photo book specific state
+  const [photos, setPhotos] = useState<PhotoData[]>([])
 
   useEffect(() => {
     const category = searchParams.get('category') as BookCategory
@@ -24,6 +48,12 @@ export default function GenerateContent() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    
+    // Handle number of chapters change for custom books
+    if (field === 'Number of Chapters' && selectedCategory === 'CUSTOM_BOOK') {
+      const num = parseInt(value) || 1
+      setNumChapters(Math.min(Math.max(num, 1), 20))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,10 +62,200 @@ export default function GenerateContent() {
 
     setIsGenerating(true)
     
-    // Simulate book generation
-    setTimeout(() => {
-      router.push('/dashboard?generated=true')
-    }, 3000)
+    try {
+      const payload: {
+        title: string
+        author: string
+        category: BookCategory
+        formData: Record<string, string>
+        chapters?: Chapter[]
+        photos?: Array<{ id: string; caption: string; order: number; filename: string }>
+      } = {
+        title: formData.title,
+        author: formData.author,
+        category: selectedCategory,
+        formData
+      }
+
+      // Add custom book specific data
+      if (selectedCategory === 'CUSTOM_BOOK') {
+        payload.chapters = chapters
+      }
+
+      // Add photo book specific data
+      if (selectedCategory === 'PHOTO_BOOK') {
+        // For now, we'll include photo info without the actual files
+        // In a real implementation, we'd upload files to a server
+        payload.photos = photos.map(photo => ({
+          id: photo.id,
+          caption: photo.caption,
+          order: photo.order,
+          filename: photo.file.name
+        }))
+      }
+
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (response.ok) {
+        router.push('/dashboard?generated=true')
+      } else {
+        console.error('Failed to generate book')
+        setIsGenerating(false)
+      }
+    } catch (error) {
+      console.error('Error generating book:', error)
+      setIsGenerating(false)
+    }
+  }
+
+  const renderCategorySpecificFields = () => {
+    if (selectedCategory === 'CUSTOM_BOOK') {
+      // First show the configuration fields
+      const configFields = categoryConfig?.prompts.map((prompt, index) => {
+        if (prompt.type === 'number' && prompt.label === 'Number of Chapters') {
+          return (
+            <div key={index}>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {prompt.label} {prompt.required && '*'}
+              </label>
+              <input
+                type="number"
+                required={prompt.required}
+                min={prompt.min}
+                max={prompt.max}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder={prompt.placeholder}
+                value={formData[prompt.label] || ''}
+                onChange={(e) => handleInputChange(prompt.label, e.target.value)}
+              />
+            </div>
+          )
+        }
+
+        return (
+          <div key={index}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {prompt.label} {prompt.required && '*'}
+            </label>
+            {prompt.type === 'textarea' ? (
+              <textarea
+                required={prompt.required}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder={prompt.placeholder}
+                value={formData[prompt.label] || ''}
+                onChange={(e) => handleInputChange(prompt.label, e.target.value)}
+              />
+            ) : (
+              <input
+                type="text"
+                required={prompt.required}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder={prompt.placeholder}
+                value={formData[prompt.label] || ''}
+                onChange={(e) => handleInputChange(prompt.label, e.target.value)}
+              />
+            )}
+          </div>
+        )
+      }) || []
+
+      // Then show chapter planning if number of chapters is set
+      const chapterPlanningSection = numChapters > 0 ? (
+        <CustomBookForm 
+          numChapters={numChapters}
+          onChaptersChange={setChapters}
+        />
+      ) : null
+
+      return (
+        <>
+          {configFields}
+          {chapterPlanningSection}
+        </>
+      )
+    }
+
+    if (selectedCategory === 'PHOTO_BOOK') {
+      return (
+        <PhotoBookForm 
+          onPhotosChange={setPhotos}
+        />
+      )
+    }
+
+    // Standard category prompts
+    return categoryConfig?.prompts.map((prompt, index) => {
+      if (prompt.type === 'file') {
+        // Skip file inputs for non-photo book categories
+        return null
+      }
+      
+      if (prompt.type === 'number' && selectedCategory === 'CUSTOM_BOOK' && prompt.label === 'Number of Chapters') {
+        return (
+          <div key={index}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {prompt.label} {prompt.required && '*'}
+            </label>
+            <input
+              type="number"
+              required={prompt.required}
+              min={prompt.min}
+              max={prompt.max}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder={prompt.placeholder}
+              value={formData[prompt.label] || ''}
+              onChange={(e) => handleInputChange(prompt.label, e.target.value)}
+            />
+          </div>
+        )
+      }
+
+      return (
+        <div key={index}>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {prompt.label} {prompt.required && '*'}
+          </label>
+          {prompt.type === 'textarea' ? (
+            <textarea
+              required={prompt.required}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder={prompt.placeholder}
+              value={formData[prompt.label] || ''}
+              onChange={(e) => handleInputChange(prompt.label, e.target.value)}
+            />
+          ) : prompt.type === 'select' ? (
+            <select
+              required={prompt.required}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={formData[prompt.label] || ''}
+              onChange={(e) => handleInputChange(prompt.label, e.target.value)}
+            >
+              <option value="">{prompt.placeholder}</option>
+              {prompt.options?.map((option, idx) => (
+                <option key={idx} value={option}>{option}</option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              required={prompt.required}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder={prompt.placeholder}
+              value={formData[prompt.label] || ''}
+              onChange={(e) => handleInputChange(prompt.label, e.target.value)}
+            />
+          )}
+        </div>
+      )
+    }) || []
   }
 
   if (!selectedCategory || !categoryConfig) {
@@ -131,44 +351,7 @@ export default function GenerateContent() {
             </div>
 
             {/* Category-specific prompts */}
-            {categoryConfig.prompts.map((prompt, index) => (
-              <div key={index}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {prompt.label} {prompt.required && '*'}
-                </label>
-                {prompt.type === 'textarea' ? (
-                  <textarea
-                    required={prompt.required}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder={prompt.placeholder}
-                    value={formData[prompt.label] || ''}
-                    onChange={(e) => handleInputChange(prompt.label, e.target.value)}
-                  />
-                ) : prompt.type === 'select' ? (
-                  <select
-                    required={prompt.required}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    value={formData[prompt.label] || ''}
-                    onChange={(e) => handleInputChange(prompt.label, e.target.value)}
-                  >
-                    <option value="">{prompt.placeholder}</option>
-                    {prompt.options?.map((option, idx) => (
-                      <option key={idx} value={option}>{option}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    required={prompt.required}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    placeholder={prompt.placeholder}
-                    value={formData[prompt.label] || ''}
-                    onChange={(e) => handleInputChange(prompt.label, e.target.value)}
-                  />
-                )}
-              </div>
-            ))}
+            {renderCategorySpecificFields()}
 
             {/* Submit Button */}
             <div className="flex justify-end space-x-4 pt-6">

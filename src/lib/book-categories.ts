@@ -183,4 +183,73 @@ export const bookCategories: BookCategoryConfig[] = [
       },
     ],
   },
+  {
+    id: 'CUSTOM_BOOK',
+    name: 'Custom Book Creation',
+    description: 'Create a custom book with your own chapters and detailed prompts',
+    icon: '📝',
+    prompts: [
+      {
+        label: 'Number of Chapters',
+        placeholder: 'How many chapters? (1-20)',
+        type: 'number',
+        required: true,
+        min: 1,
+        max: 20,
+      },
+      {
+        label: 'Book Genre/Type',
+        placeholder: 'e.g., Fiction, Non-fiction, Educational, Biography',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Overall Book Theme',
+        placeholder: 'Describe the main theme or topic of your book',
+        type: 'textarea',
+        required: true,
+      },
+      {
+        label: 'Target Audience',
+        placeholder: 'Who is this book for? (age group, interests, etc.)',
+        type: 'text',
+        required: false,
+      },
+    ],
+  },
+  {
+    id: 'PHOTO_BOOK',
+    name: 'Photo Book',
+    description: 'Create a beautiful photo book with images and captions',
+    icon: '📸',
+    prompts: [
+      {
+        label: 'Photo Book Theme',
+        placeholder: 'e.g., Travel, Family, Wedding, Recipe Collection',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Book Description',
+        placeholder: 'Describe what this photo book is about',
+        type: 'textarea',
+        required: false,
+      },
+      {
+        label: 'Layout Style',
+        placeholder: 'Select preferred layout',
+        type: 'select',
+        options: ['Classic', 'Modern', 'Scrapbook', 'Minimalist'],
+        required: true,
+      },
+      {
+        label: 'Upload Photos',
+        placeholder: 'Select up to 30 photos (PNG, JPEG)',
+        type: 'file',
+        required: true,
+        multiple: true,
+        accept: 'image/png,image/jpeg',
+      },
+    ],
+  },
 ]
