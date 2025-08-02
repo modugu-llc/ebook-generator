@@ -1,0 +1,186 @@
+import { BookCategoryConfig } from '@/types'
+
+export const bookCategories: BookCategoryConfig[] = [
+  {
+    id: 'CHILDRENS_STORY',
+    name: "Children's Story Books",
+    description: "Create magical stories for kids with customizable characters and adventures",
+    icon: '📚',
+    prompts: [
+      {
+        label: 'Main Character Name',
+        placeholder: 'e.g., Luna the brave little mouse',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Setting/Place',
+        placeholder: 'e.g., An enchanted forest, outer space, underwater kingdom',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Adventure/Challenge',
+        placeholder: 'e.g., Finding a lost treasure, making new friends, overcoming fears',
+        type: 'textarea',
+        required: true,
+      },
+      {
+        label: 'Lesson or Moral',
+        placeholder: 'e.g., The importance of friendship, being brave, sharing',
+        type: 'text',
+        required: false,
+      },
+      {
+        label: 'Age Group',
+        placeholder: 'Select age group',
+        type: 'select',
+        options: ['3-5 years', '6-8 years', '9-12 years'],
+        required: true,
+      },
+    ],
+  },
+  {
+    id: 'RECIPE_COOKBOOK',
+    name: 'Family Recipe Cookbooks',
+    description: 'Compile family recipes with stories and memories',
+    icon: '👩‍🍳',
+    prompts: [
+      {
+        label: 'Cookbook Theme',
+        placeholder: 'e.g., Grandmas Italian Recipes, Holiday Traditions, Quick Family Meals',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Family Stories',
+        placeholder: 'Share stories about your family food traditions, special occasions, or cooking memories',
+        type: 'textarea',
+        required: false,
+      },
+      {
+        label: 'Recipe Types',
+        placeholder: 'Select types to include',
+        type: 'select',
+        options: ['Appetizers', 'Main Dishes', 'Desserts', 'Drinks', 'Holiday Specials', 'All Types'],
+        required: true,
+      },
+      {
+        label: 'Special Dietary Notes',
+        placeholder: 'e.g., Vegetarian options, gluten-free alternatives, diabetic-friendly',
+        type: 'text',
+        required: false,
+      },
+    ],
+  },
+  {
+    id: 'ADVENTURE',
+    name: 'Adventure Books',
+    description: 'Turn your real adventures into exciting stories',
+    icon: '🎒',
+    prompts: [
+      {
+        label: 'Adventure Location',
+        placeholder: 'e.g., Hiking in the Rockies, Road trip across Europe, Camping in Yellowstone',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Adventure Details',
+        placeholder: 'Describe your experience, challenges faced, and memorable moments',
+        type: 'textarea',
+        required: true,
+      },
+      {
+        label: 'Travel Companions',
+        placeholder: 'Who did you travel with? Family, friends, solo adventure?',
+        type: 'text',
+        required: false,
+      },
+      {
+        label: 'Best Memories',
+        placeholder: 'What were the highlights? Funny moments? Unexpected discoveries?',
+        type: 'textarea',
+        required: false,
+      },
+      {
+        label: 'Adventure Type',
+        placeholder: 'Select adventure type',
+        type: 'select',
+        options: ['Outdoor/Nature', 'City/Cultural', 'Food & Drink', 'Historical', 'Extreme Sports'],
+        required: true,
+      },
+    ],
+  },
+  {
+    id: 'FUNNY_QUOTES',
+    name: 'Funny Quote Books',
+    description: 'Create hilarious books from memorable quotes and sayings',
+    icon: '😂',
+    prompts: [
+      {
+        label: 'Quote Source',
+        placeholder: 'e.g., Things My Mom Says, Dad Jokes Collection, Funny Kid Comments',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Theme/Topic',
+        placeholder: 'e.g., Family humor, work life, parenting, everyday situations',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Context/Setting',
+        placeholder: 'Where do these funny moments happen? At home, work, school, etc.',
+        type: 'text',
+        required: false,
+      },
+      {
+        label: 'Sample Quotes',
+        placeholder: 'Share a few example quotes to set the tone (optional)',
+        type: 'textarea',
+        required: false,
+      },
+    ],
+  },
+  {
+    id: 'GENERAL_PROMPT',
+    name: 'General Prompt-based Books',
+    description: 'Create any type of book from your custom prompt',
+    icon: '✨',
+    prompts: [
+      {
+        label: 'Book Genre',
+        placeholder: 'e.g., Mystery, Romance, Science Fiction, Self-Help, Biography',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Main Theme/Topic',
+        placeholder: 'What is your book about?',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Detailed Prompt',
+        placeholder: 'Provide a detailed description of what you want your book to contain',
+        type: 'textarea',
+        required: true,
+      },
+      {
+        label: 'Target Audience',
+        placeholder: 'Who is this book for? (age group, interests, etc.)',
+        type: 'text',
+        required: false,
+      },
+      {
+        label: 'Book Length',
+        placeholder: 'Select preferred length',
+        type: 'select',
+        options: ['Short (5-10 pages)', 'Medium (15-25 pages)', 'Long (30+ pages)'],
+        required: true,
+      },
+    ],
+  },
+]
