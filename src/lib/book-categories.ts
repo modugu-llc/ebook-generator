@@ -183,4 +183,73 @@ export const bookCategories: BookCategoryConfig[] = [
       },
     ],
   },
+  {
+    id: 'PHOTO_BOOK',
+    name: 'Photo Books',
+    description: 'Create beautiful photo books with captions for travel, family, or special memories',
+    icon: '📸',
+    prompts: [
+      {
+        label: 'Photo Book Theme',
+        placeholder: 'e.g., Family Vacation, Wedding Album, Baby\'s First Year',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Upload Photos',
+        placeholder: 'Select up to 30 images (PNG, JPEG formats)',
+        type: 'file',
+        accept: 'image/png,image/jpeg,image/jpg',
+        multiple: true,
+        max: 30,
+        required: true,
+      },
+      {
+        label: 'Book Description',
+        placeholder: 'Describe what this photo book is about',
+        type: 'textarea',
+        required: false,
+      },
+      {
+        label: 'Layout Style',
+        placeholder: 'Choose layout style',
+        type: 'select',
+        options: ['Classic Grid', 'Magazine Style', 'Scrapbook', 'Minimal Clean'],
+        required: true,
+      },
+    ],
+  },
+  {
+    id: 'CUSTOM_BOOK',
+    name: 'Custom Book Creation',
+    description: 'Create a book with custom chapters and AI-generated content',
+    icon: '✍️',
+    prompts: [
+      {
+        label: 'Book Genre',
+        placeholder: 'e.g., Mystery, Romance, Science Fiction, Self-Help, Biography',
+        type: 'text',
+        required: true,
+      },
+      {
+        label: 'Number of Chapters',
+        placeholder: 'Enter number of chapters (1-20)',
+        type: 'number',
+        max: 20,
+        required: true,
+      },
+      {
+        label: 'Overall Book Description',
+        placeholder: 'Provide an overall description of your book',
+        type: 'textarea',
+        required: true,
+      },
+      {
+        label: 'Target Audience',
+        placeholder: 'Who is this book for? (age group, interests, etc.)',
+        type: 'text',
+        required: false,
+      },
+    ],
+  },
 ]
