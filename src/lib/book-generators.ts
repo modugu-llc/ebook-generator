@@ -3,6 +3,7 @@ export function generatePDF(book: {
   title: string
   author: string
   content: string
+  category: string
 }) {
   // In a real implementation, this would use jsPDF or a server-side PDF generator
   // For now, we'll just return a mock PDF data structure
@@ -10,15 +11,19 @@ export function generatePDF(book: {
   const pdfContent = {
     title: book.title,
     author: book.author,
+    category: book.category,
     pages: [] as Array<{
       type: string
       title?: string
       content: string
+      imageUrl?: string
+      caption?: string
     }>,
     metadata: {
       creator: 'EBook Generator',
       subject: book.title,
       keywords: 'ebook, ai-generated',
+      category: book.category,
     }
   }
 
@@ -30,6 +35,18 @@ export function generatePDF(book: {
       type: 'title',
       content: `${content.title}\n\nby ${content.author}`
     })
+
+    // For photo books, handle photos differently
+    if (book.category === 'PHOTO_BOOK' && content.photos) {
+      content.photos.forEach((photo: { filename: string; caption: string; order: number }) => {
+        pdfContent.pages.push({
+          type: 'photo',
+          imageUrl: photo.filename,
+          caption: photo.caption,
+          content: photo.caption
+        })
+      })
+    }
 
     // Chapters
     content.chapters?.forEach((chapter: { title: string; content: string }) => {
@@ -51,11 +68,13 @@ export function generateEPUB(book: {
   title: string
   author: string
   content: string
+  category: string
 }) {
   // In a real implementation, this would use epub-gen or similar
   const epubContent = {
     title: book.title,
     author: book.author,
+    category: book.category,
     chapters: [] as Array<{
       title: string
       content: string
@@ -65,11 +84,29 @@ export function generateEPUB(book: {
       language: 'en',
       identifier: `ebook-${Date.now()}`,
       date: new Date().toISOString(),
+      category: book.category,
     }
   }
 
   try {
     const content = JSON.parse(book.content)
+    
+    // For photo books, create special chapters with images
+    if (book.category === 'PHOTO_BOOK' && content.photos) {
+      epubContent.chapters.push({
+        title: 'Introduction',
+        content: `<h1>Introduction</h1><p>Welcome to ${book.title}</p>`,
+        filename: 'intro.xhtml'
+      })
+
+      content.photos.forEach((photo: { filename: string; caption: string; order: number }, index: number) => {
+        epubContent.chapters.push({
+          title: `Photo ${index + 1}`,
+          content: `<div class="photo-page"><img src="${photo.filename}" alt="Photo ${index + 1}" /><p class="caption">${photo.caption}</p></div>`,
+          filename: `photo-${index + 1}.xhtml`
+        })
+      })
+    }
     
     content.chapters?.forEach((chapter: { title: string; content: string }, index: number) => {
       epubContent.chapters.push({

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { mockDb } from '@/lib/mock-db'
 
 export async function GET() {
   try {
-    const books = await prisma.book.findMany({
+    const books = await mockDb.book.findMany({
       where: {
         userId: 'mock-user-id', // In a real app, this would come from the session
       },

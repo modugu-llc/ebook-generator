@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { mockDb } from '@/lib/mock-db'
 import { generatePDF, generateEPUB } from '@/lib/book-generators'
 
 export async function GET(
@@ -10,7 +10,7 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const format = searchParams.get('format') || 'pdf'
     
-    const book = await prisma.book.findUnique({
+    const book = await mockDb.book.findUnique({
       where: { id: params.id },
     })
 

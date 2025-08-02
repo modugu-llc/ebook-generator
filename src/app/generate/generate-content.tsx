@@ -197,7 +197,7 @@ export default function GenerateContent() {
         return null
       }
       
-      if (prompt.type === 'number' && selectedCategory === 'CUSTOM_BOOK' && prompt.label === 'Number of Chapters') {
+      if (prompt.type === 'number' && selectedCategory === 'CUSTOM_BOOK' as BookCategory && prompt.label === 'Number of Chapters') {
         return (
           <div key={index}>
             <label className="block text-sm font-medium text-gray-700 mb-2">

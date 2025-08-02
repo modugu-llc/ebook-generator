@@ -32,6 +32,7 @@ export default function CustomBookForm({ numChapters, onChaptersChange, initialC
       setChapters(newChapters)
       onChaptersChange(newChapters)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numChapters, initialChapters.length]) // Remove onChaptersChange from dependencies
 
   const handleChapterChange = (index: number, field: keyof Chapter, value: string) => {
