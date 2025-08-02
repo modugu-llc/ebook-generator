@@ -10,6 +10,8 @@ A comprehensive AI-powered e-book generation platform that allows users to creat
 - **Adventure Books**: Generate books based on user's personal adventures and experiences
 - **Funny Quote Books**: Create humorous books like "Things My Mom Says" with user-submitted content
 - **General Prompt-based Books**: Allow users to enter any prompt and generate a complete book
+- **Photo Books**: Create beautiful photo books with up to 30 images, captions, and professional layouts
+- **Custom Book Creation**: Create books with user-defined chapters (up to 20), AI-generated content, and editing capabilities
 
 ### Core Functionality
 - ✨ **AI-Powered Content Generation**: Smart AI creates engaging content based on user prompts
@@ -18,6 +20,9 @@ A comprehensive AI-powered e-book generation platform that allows users to creat
 - 📊 **User Dashboard**: Manage and track all generated books
 - 🔄 **Real-time Generation**: Watch your book being created with loading indicators
 - 📋 **Category-specific Forms**: Tailored input forms for each book type
+- 📸 **Photo Book Support**: Upload up to 30 images with captions and layout options
+- ✍️ **Custom Chapter Management**: Create books with user-defined chapters and editing capabilities
+- 🔧 **Chapter Editing**: Edit generated content before publishing
 
 ## 🛠️ Technology Stack
 
@@ -93,8 +98,11 @@ Transform your real-life adventures into exciting narratives. Perfect for travel
 #### Funny Quote Books
 Create hilarious collections of memorable sayings from family, friends, or colleagues.
 
-#### General Prompt Books
-Maximum flexibility - create any type of book from your custom prompts.
+#### Photo Books
+Create visually stunning photo books perfect for travel memories, family albums, or special occasions. Upload up to 30 images with individual captions and choose from professional layout styles.
+
+#### Custom Book Creation
+Define your own book structure with custom chapters (up to 20). Provide detailed prompts for each chapter and let AI generate content. Edit and refine chapters before publishing.
 
 ## 📁 Project Structure
 

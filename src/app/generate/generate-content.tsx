@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { bookCategories } from '@/lib/book-categories'
 import type { BookCategory, BookCategoryConfig } from '@/types'
+import ImageUpload from '@/components/ImageUpload'
+import ChapterManager from '@/components/ChapterManager'
 
 export default function GenerateContent() {
   const searchParams = useSearchParams()
@@ -12,6 +14,9 @@ export default function GenerateContent() {
   const [categoryConfig, setCategoryConfig] = useState<BookCategoryConfig | null>(null)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [isGenerating, setIsGenerating] = useState(false)
+  const [images, setImages] = useState<{ file: File; preview: string; caption: string }[]>([])
+  const [chapters, setChapters] = useState<{ title: string; prompt: string; content?: string }[]>([])
+  const [numberOfChapters, setNumberOfChapters] = useState<number>(0)
 
   useEffect(() => {
     const category = searchParams.get('category') as BookCategory
@@ -32,10 +37,38 @@ export default function GenerateContent() {
 
     setIsGenerating(true)
     
-    // Simulate book generation
-    setTimeout(() => {
-      router.push('/dashboard?generated=true')
-    }, 3000)
+    try {
+      // Prepare form data with special handling for new book types
+      const bookData = {
+        title: formData.title,
+        author: formData.author,
+        category: selectedCategory,
+        formData,
+        images: selectedCategory === 'PHOTO_BOOK' ? images : undefined,
+        chapters: selectedCategory === 'CUSTOM_BOOK' ? chapters : undefined,
+      }
+
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookData),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        router.push('/dashboard?generated=true')
+      } else {
+        alert('Failed to generate book. Please try again.')
+        setIsGenerating(false)
+      }
+    } catch (error) {
+      console.error('Error generating book:', error)
+      alert('An error occurred. Please try again.')
+      setIsGenerating(false)
+    }
   }
 
   if (!selectedCategory || !categoryConfig) {
@@ -157,6 +190,29 @@ export default function GenerateContent() {
                       <option key={idx} value={option}>{option}</option>
                     ))}
                   </select>
+                ) : prompt.type === 'number' ? (
+                  <input
+                    type="number"
+                    required={prompt.required}
+                    min="1"
+                    max={prompt.max || undefined}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder={prompt.placeholder}
+                    value={formData[prompt.label] || ''}
+                    onChange={(e) => {
+                      handleInputChange(prompt.label, e.target.value)
+                      if (prompt.label === 'Number of Chapters') {
+                        setNumberOfChapters(parseInt(e.target.value) || 0)
+                      }
+                    }}
+                  />
+                ) : prompt.type === 'file' ? (
+                  <ImageUpload
+                    onImagesChange={setImages}
+                    maxImages={prompt.max || 30}
+                    accept={prompt.accept}
+                    required={prompt.required}
+                  />
                 ) : (
                   <input
                     type="text"
@@ -169,6 +225,17 @@ export default function GenerateContent() {
                 )}
               </div>
             ))}
+
+            {/* Chapter Manager for Custom Books */}
+            {selectedCategory === 'CUSTOM_BOOK' && numberOfChapters > 0 && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Configure Your Chapters</h3>
+                <ChapterManager
+                  numberOfChapters={numberOfChapters}
+                  onChaptersChange={setChapters}
+                />
+              </div>
+            )}
 
             {/* Submit Button */}
             <div className="flex justify-end space-x-4 pt-6">

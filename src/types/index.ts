@@ -1,4 +1,4 @@
-export type BookCategory = 'CHILDRENS_STORY' | 'RECIPE_COOKBOOK' | 'ADVENTURE' | 'FUNNY_QUOTES' | 'GENERAL_PROMPT'
+export type BookCategory = 'CHILDRENS_STORY' | 'RECIPE_COOKBOOK' | 'ADVENTURE' | 'FUNNY_QUOTES' | 'GENERAL_PROMPT' | 'PHOTO_BOOK' | 'CUSTOM_BOOK'
 export type BookStatus = 'DRAFT' | 'GENERATING' | 'COMPLETED' | 'ERROR'
 
 export interface BookPrompt {
@@ -18,8 +18,30 @@ export interface GeneratedBook {
   coverImage?: string
   status: BookStatus
   metadata?: Record<string, string | number | boolean>
+  chapters?: BookChapter[]
+  images?: BookImage[]
   createdAt: Date
   updatedAt: Date
+}
+
+export interface BookChapter {
+  id: string
+  bookId: string
+  title: string
+  content: string
+  order: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface BookImage {
+  id: string
+  bookId: string
+  filename: string
+  url: string
+  caption?: string
+  order: number
+  createdAt: Date
 }
 
 export interface User {
@@ -37,8 +59,11 @@ export interface BookCategoryConfig {
   prompts: {
     label: string
     placeholder: string
-    type: 'text' | 'textarea' | 'select'
+    type: 'text' | 'textarea' | 'select' | 'file' | 'number'
     options?: string[]
     required?: boolean
+    accept?: string // for file inputs
+    multiple?: boolean // for file inputs
+    max?: number // for numbers or file counts
   }[]
 }
