@@ -59,7 +59,9 @@ export default function GenerateContent() {
       const result = await response.json()
 
       if (result.success) {
-        router.push('/dashboard?generated=true')
+        // Store the category for the dashboard
+        localStorage.setItem('lastBookCategory', selectedCategory)
+        router.push(`/dashboard?generated=true&category=${selectedCategory}`)
       } else {
         alert('Failed to generate book. Please try again.')
         setIsGenerating(false)
