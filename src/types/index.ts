@@ -39,7 +39,8 @@ export interface BookImage {
   bookId: string
   filename: string
   url: string
-  caption?: string
+  caption?: string  // Keep for backward compatibility
+  description?: string  // New detailed description field
   order: number
   createdAt: Date
 }

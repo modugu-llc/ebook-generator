@@ -14,7 +14,7 @@ export default function GenerateContent() {
   const [categoryConfig, setCategoryConfig] = useState<BookCategoryConfig | null>(null)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [isGenerating, setIsGenerating] = useState(false)
-  const [images, setImages] = useState<{ file: File; preview: string; caption: string }[]>([])
+  const [images, setImages] = useState<{ file: File; preview: string; caption: string; description: string }[]>([])
   const [chapters, setChapters] = useState<{ title: string; prompt: string; content?: string }[]>([])
   const [numberOfChapters, setNumberOfChapters] = useState<number>(0)
 
