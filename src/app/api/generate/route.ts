@@ -174,6 +174,35 @@ function generateBookContent(category: string, title: string, author: string, fo
 }
 
 function generatePhotoBookContent(title: string, author: string, formData: Record<string, string>, images: { file?: File; preview: string; caption: string }[]) {
+  // Extract meaningful content from captions for narrative generation
+  const captionedImages = images.filter(img => img.caption && img.caption.trim())
+  const allCaptions = captionedImages.map(img => img.caption.trim())
+  
+  // Generate a more personalized narrative using the captions
+  let narrativeContent = `A collection of ${images.length} beautiful photographs with their stories:`
+  
+  if (allCaptions.length > 0) {
+    // Create a flowing narrative that incorporates the captions
+    narrativeContent = `This photo book tells the story of our journey through ${allCaptions.length} captioned moments. `
+    
+    if (allCaptions.length === 1) {
+      narrativeContent += `Featuring: ${allCaptions[0]}.`
+    } else if (allCaptions.length === 2) {
+      narrativeContent += `From ${allCaptions[0]}, to ${allCaptions[1]}.`
+    } else {
+      narrativeContent += `From ${allCaptions[0]}, through ${allCaptions.slice(1, -1).join(', ')}, and finally to ${allCaptions[allCaptions.length - 1]}.`
+    }
+    
+    narrativeContent += ` Each image captures a unique moment in our adventure, creating a beautiful tapestry of memories.`
+  }
+  
+  // Create an introduction that incorporates the theme and captions
+  let introContent = `Welcome to "${title}" - ${formData['Photo Book Theme']}. ${formData['Book Description'] || 'This photo book captures precious moments and memories.'}`
+  
+  if (allCaptions.length > 0) {
+    introContent += ` Through these carefully curated images and their stories, we invite you to experience our journey and the special moments that made it unforgettable.`
+  }
+
   return {
     title,
     author,
@@ -182,14 +211,20 @@ function generatePhotoBookContent(title: string, author: string, formData: Recor
     description: formData['Book Description'] || 'A beautiful collection of memories',
     layoutStyle: formData['Layout Style'],
     totalImages: images.length,
+    captionedImages: captionedImages.length,
+    imageDetails: images.map((img, index) => ({
+      order: index + 1,
+      caption: img.caption || '',
+      hasCaption: !!(img.caption && img.caption.trim())
+    })),
     chapters: [
       {
         title: 'Introduction',
-        content: `Welcome to "${title}" - ${formData['Photo Book Theme']}. ${formData['Book Description'] || 'This photo book captures precious moments and memories.'}`
+        content: introContent
       },
       {
         title: 'Photo Gallery',
-        content: `A collection of ${images.length} beautiful photographs with their stories.`
+        content: narrativeContent
       }
     ]
   }
