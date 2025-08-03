@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
             bookId: book.id,
             filename: image.file?.name || `image-${i + 1}`,
             url: image.preview, // In a real app, this would be uploaded to storage
-            caption: image.caption || '',
+            caption: image.description || image.caption || '', // Use description as primary, fallback to caption
             order: i + 1,
           },
         })
@@ -173,34 +173,94 @@ function generateBookContent(category: string, title: string, author: string, fo
   return content
 }
 
-function generatePhotoBookContent(title: string, author: string, formData: Record<string, string>, images: { file?: File; preview: string; caption: string }[]) {
-  // Extract meaningful content from captions for narrative generation
-  const captionedImages = images.filter(img => img.caption && img.caption.trim())
-  const allCaptions = captionedImages.map(img => img.caption.trim())
+function generatePhotoBookContent(title: string, author: string, formData: Record<string, string>, images: { file?: File; preview: string; caption: string; description: string }[]) {
+  // Extract meaningful content from detailed descriptions for narrative generation
+  const describedImages = images.filter(img => img.description && img.description.trim())
+  const allDescriptions = describedImages.map(img => img.description.trim())
+  const allCaptions = images.filter(img => img.caption && img.caption.trim()).map(img => img.caption.trim())
   
-  // Generate a more personalized narrative using the captions
-  let narrativeContent = `A collection of ${images.length} beautiful photographs with their stories:`
-  
-  if (allCaptions.length > 0) {
-    // Create a flowing narrative that incorporates the captions
-    narrativeContent = `This photo book tells the story of our journey through ${allCaptions.length} captioned moments. `
-    
-    if (allCaptions.length === 1) {
-      narrativeContent += `Featuring: ${allCaptions[0]}.`
-    } else if (allCaptions.length === 2) {
-      narrativeContent += `From ${allCaptions[0]}, to ${allCaptions[1]}.`
-    } else {
-      narrativeContent += `From ${allCaptions[0]}, through ${allCaptions.slice(1, -1).join(', ')}, and finally to ${allCaptions[allCaptions.length - 1]}.`
-    }
-    
-    narrativeContent += ` Each image captures a unique moment in our adventure, creating a beautiful tapestry of memories.`
+  // Generate detailed prompts for the LLM based on photo descriptions
+  const llmPrompts = {
+    mainNarrative: '',
+    characterAnalysis: '',
+    themeExtraction: '',
+    emotionalTone: '',
+    chronologicalFlow: ''
   }
   
-  // Create an introduction that incorporates the theme and captions
-  let introContent = `Welcome to "${title}" - ${formData['Photo Book Theme']}. ${formData['Book Description'] || 'This photo book captures precious moments and memories.'}`
+  // Main narrative prompt incorporating detailed descriptions
+  if (allDescriptions.length > 0) {
+    llmPrompts.mainNarrative = `Create a compelling photo book narrative for "${title}" based on these ${allDescriptions.length} detailed photo descriptions:\n\n${allDescriptions.map((desc, i) => `Photo ${i + 1}: ${desc}`).join('\n\n')}\n\nWeave these moments into a cohesive story that captures the essence of ${formData['Photo Book Theme']}. Focus on the emotions, relationships, and experiences described.`
+    
+    // Extract characters and relationships
+    const peopleKeywords = ['family', 'friend', 'child', 'baby', 'mom', 'dad', 'grandmother', 'grandfather', 'sibling', 'cousin', 'husband', 'wife', 'daughter', 'son']
+    const peopleDescriptions = allDescriptions.filter(desc => 
+      peopleKeywords.some(keyword => desc.toLowerCase().includes(keyword))
+    )
+    
+    if (peopleDescriptions.length > 0) {
+      llmPrompts.characterAnalysis = `Based on these people-focused descriptions, identify the key characters and relationships:\n${peopleDescriptions.join('\n\n')}`
+    }
+    
+    // Extract themes and emotions
+    const emotionKeywords = ['happy', 'joy', 'love', 'excited', 'peaceful', 'proud', 'celebration', 'milestone', 'achievement', 'memory', 'special', 'beautiful', 'fun', 'adventure']
+    const hasEmotionalContent = allDescriptions.some(desc => 
+      emotionKeywords.some(keyword => desc.toLowerCase().includes(keyword))
+    )
+    
+    if (hasEmotionalContent) {
+      llmPrompts.emotionalTone = `Analyze the emotional journey and themes present in these photo descriptions to create a book that resonates emotionally.`
+    }
+    
+    // Generate chronological understanding
+    const timeKeywords = ['first', 'last', 'before', 'after', 'during', 'when', 'then', 'next', 'finally', 'beginning', 'end']
+    const hasTimelineElements = allDescriptions.some(desc => 
+      timeKeywords.some(keyword => desc.toLowerCase().includes(keyword))
+    )
+    
+    if (hasTimelineElements) {
+      llmPrompts.chronologicalFlow = `Identify the chronological flow and sequence of events from the photo descriptions to structure the book narrative.`
+    }
+  }
   
-  if (allCaptions.length > 0) {
-    introContent += ` Through these carefully curated images and their stories, we invite you to experience our journey and the special moments that made it unforgettable.`
+  // Create enhanced content for LLM processing
+  let enhancedNarrative = `${formData['Book Description'] || `A beautiful photo book capturing the essence of ${formData['Photo Book Theme']}.`}`
+  
+  if (allDescriptions.length > 0) {
+    enhancedNarrative += `\n\nThis collection tells the story through ${images.length} carefully curated photographs, with ${allDescriptions.length} featuring detailed personal stories and context. `
+    
+    // Create a flowing narrative that incorporates the detailed descriptions
+    const storyElements: string[] = []
+    
+    allDescriptions.forEach((desc) => {
+      // Extract key narrative elements from each description
+      const sentences = desc.split(/[.!?]+/).filter(s => s.trim().length > 0)
+      if (sentences.length > 0) {
+        // Use the most descriptive sentence or the first substantial one
+        const mainSentence = sentences.find(s => s.length > 30) || sentences[0]
+        if (mainSentence) {
+          storyElements.push(mainSentence.trim())
+        }
+      }
+    })
+    
+    if (storyElements.length > 0) {
+      enhancedNarrative += `The journey unfolds through moments like: ${storyElements.slice(0, 3).join('; ')}${storyElements.length > 3 ? ', and many more precious memories' : ''}.`
+    }
+    
+    enhancedNarrative += ` Each photograph is accompanied by personal stories, contextual details, and emotional connections that transform this from a simple collection into a rich narrative of experiences and memories.`
+  }
+  
+  // Create detailed metadata for LLM processing
+  const detailedMetadata = {
+    totalImages: images.length,
+    describedImages: describedImages.length,
+    captionedImages: allCaptions.length,
+    averageDescriptionLength: allDescriptions.length > 0 ? Math.round(allDescriptions.reduce((sum, desc) => sum + desc.length, 0) / allDescriptions.length) : 0,
+    hasDetailedStories: describedImages.length > 0,
+    narrativeComplexity: allDescriptions.length >= 5 ? 'high' : allDescriptions.length >= 2 ? 'medium' : 'low',
+    suggestedChapters: Math.ceil(images.length / 5), // Suggest chapters based on photo count
+    llmPrompts: llmPrompts
   }
 
   return {
@@ -210,22 +270,31 @@ function generatePhotoBookContent(title: string, author: string, formData: Recor
     theme: formData['Photo Book Theme'],
     description: formData['Book Description'] || 'A beautiful collection of memories',
     layoutStyle: formData['Layout Style'],
-    totalImages: images.length,
-    captionedImages: captionedImages.length,
+    enhancedNarrative,
+    detailedMetadata,
     imageDetails: images.map((img, index) => ({
       order: index + 1,
       caption: img.caption || '',
-      hasCaption: !!(img.caption && img.caption.trim())
+      description: img.description || '',
+      hasCaption: !!(img.caption && img.caption.trim()),
+      hasDescription: !!(img.description && img.description.trim()),
+      wordCount: img.description ? img.description.split(' ').length : 0
     })),
     chapters: [
       {
         title: 'Introduction',
-        content: introContent
+        content: `Welcome to "${title}" - ${formData['Photo Book Theme']}. ${formData['Book Description'] || 'This photo book captures precious moments and memories.'}\n\n${describedImages.length > 0 ? `Through these carefully curated images and their personal stories, we invite you to experience our journey and the special moments that made it unforgettable. Each photograph tells a story, and together they create a beautiful tapestry of memories that will be treasured for years to come.` : 'Each image in this collection has been chosen to represent special moments and memories.'}`
       },
       {
         title: 'Photo Gallery',
-        content: narrativeContent
-      }
+        content: enhancedNarrative
+      },
+      ...(describedImages.length >= 10 ? [
+        {
+          title: 'Stories Behind the Moments',
+          content: `Each photograph in this collection comes with its own story. Here are some of the most meaningful moments captured:\n\n${allDescriptions.slice(0, 5).map((desc) => `**Photo ${describedImages.findIndex(img => img.description === desc) + 1}**: ${desc.substring(0, 200)}${desc.length > 200 ? '...' : ''}`).join('\n\n')}`
+        }
+      ] : [])
     ]
   }
 }

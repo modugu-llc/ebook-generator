@@ -14,7 +14,7 @@ export default function GenerateContent() {
   const [categoryConfig, setCategoryConfig] = useState<BookCategoryConfig | null>(null)
   const [formData, setFormData] = useState<Record<string, string>>({})
   const [isGenerating, setIsGenerating] = useState(false)
-  const [images, setImages] = useState<{ file: File; preview: string; caption: string }[]>([])
+  const [images, setImages] = useState<{ file: File; preview: string; caption: string; description: string }[]>([])
   const [chapters, setChapters] = useState<{ title: string; prompt: string; content?: string }[]>([])
   const [numberOfChapters, setNumberOfChapters] = useState<number>(0)
 
@@ -59,7 +59,9 @@ export default function GenerateContent() {
       const result = await response.json()
 
       if (result.success) {
-        router.push('/dashboard?generated=true')
+        // Store the category for the dashboard
+        localStorage.setItem('lastBookCategory', selectedCategory)
+        router.push(`/dashboard?generated=true&category=${selectedCategory}`)
       } else {
         alert('Failed to generate book. Please try again.')
         setIsGenerating(false)

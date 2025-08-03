@@ -186,7 +186,7 @@ export const bookCategories: BookCategoryConfig[] = [
   {
     id: 'PHOTO_BOOK',
     name: 'Photo Books',
-    description: 'Create beautiful photo books with captions for travel, family, or special memories',
+    description: 'Create beautiful photo books with detailed stories for travel, family, or special memories',
     icon: '📸',
     prompts: [
       {
@@ -197,7 +197,7 @@ export const bookCategories: BookCategoryConfig[] = [
       },
       {
         label: 'Upload Photos',
-        placeholder: 'Select up to 30 images (PNG, JPEG formats)',
+        placeholder: 'Select up to 30 images and add detailed descriptions for each (PNG, JPEG formats)',
         type: 'file',
         accept: 'image/png,image/jpeg,image/jpg',
         multiple: true,
@@ -206,7 +206,7 @@ export const bookCategories: BookCategoryConfig[] = [
       },
       {
         label: 'Book Description',
-        placeholder: 'Describe what this photo book is about',
+        placeholder: 'Describe what this photo book is about and what makes these memories special',
         type: 'textarea',
         required: false,
       },

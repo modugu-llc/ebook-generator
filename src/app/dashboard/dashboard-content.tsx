@@ -35,22 +35,39 @@ export default function DashboardContent() {
   useEffect(() => {
     if (searchParams.get('generated') === 'true') {
       setShowSuccess(true)
-      // Add a new generated book
+      
+      // Try to get the category from the previous page's localStorage or URL
+      const category = searchParams.get('category') || localStorage.getItem('lastBookCategory') || 'GENERAL_PROMPT'
+      
+      // Add a new generated book with the correct category
       const newBook = {
         id: Date.now().toString(),
-        title: 'My New Generated Book',
+        title: getDefaultTitle(category),
         author: 'You',
-        category: 'GENERAL_PROMPT' as const,
+        category: category,
         status: 'COMPLETED' as const,
         createdAt: new Date(),
         coverImage: null,
       }
       setBooks(prev => [newBook, ...prev])
       
-      // Clear the query parameter
+      // Clear the localStorage and query parameter
+      localStorage.removeItem('lastBookCategory')
       router.replace('/dashboard')
     }
   }, [searchParams, router])
+
+  const getDefaultTitle = (category: string) => {
+    switch (category) {
+      case 'PHOTO_BOOK': return 'My Photo Book'
+      case 'CUSTOM_BOOK': return 'My Custom Book'
+      case 'CHILDRENS_STORY': return 'My Children\'s Story'
+      case 'RECIPE_COOKBOOK': return 'My Recipe Cookbook'
+      case 'ADVENTURE': return 'My Adventure Book'
+      case 'FUNNY_QUOTES': return 'My Funny Quotes'
+      default: return 'My New Generated Book'
+    }
+  }
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -59,6 +76,8 @@ export default function DashboardContent() {
       case 'ADVENTURE': return '🎒'
       case 'FUNNY_QUOTES': return '😂'
       case 'GENERAL_PROMPT': return '✨'
+      case 'PHOTO_BOOK': return '📸'
+      case 'CUSTOM_BOOK': return '✍️'
       default: return '📖'
     }
   }
@@ -70,6 +89,8 @@ export default function DashboardContent() {
       case 'ADVENTURE': return 'Adventure Book'
       case 'FUNNY_QUOTES': return 'Funny Quotes'
       case 'GENERAL_PROMPT': return 'General Book'
+      case 'PHOTO_BOOK': return 'Photo Book'
+      case 'CUSTOM_BOOK': return 'Custom Book'
       default: return 'Book'
     }
   }
